@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Success</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #43cea2, #185a9d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            width: 400px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+            color: blue;
+            word-break: break-all;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            background: #43cea2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2bb673;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>✅ File Uploaded Successfully</h2>
+
+    <p>Your download link:</p>
+
+    <a href="{{ link }}">{{ link }}</a>
+
+    <button onclick="copyLink()">Copy Link</button>
+
+    <br><br>
+    <a href="/upload">
+        <button>Upload Another File</button>
+    </a>
+</div>
+
+<script>
+function copyLink() {
+    navigator.clipboard.writeText("{{ link }}");
+    alert("Link copied!");
+}
+</script>
+
+</body>
+</html>

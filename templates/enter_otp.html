@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OTP Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 380px;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .otp-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
+            letter-spacing: 4px;
+            transition: 0.3s;
+        }
+
+        .otp-input:focus {
+            border-color: #4e73df;
+            outline: none;
+            box-shadow: 0 0 8px rgba(78,115,223,0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #4e73df;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #2e59d9;
+            transform: translateY(-2px);
+        }
+
+        .resend {
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .resend a {
+            color: #4e73df;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .resend a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-text {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="icon">🔐</div>
+    <h2>OTP Verification</h2>
+    <p>Enter the 6-digit OTP sent to your email.</p>
+
+    <form method="POST" action="/check_otp">
+        <input type="text" name="otp" class="otp-input" maxlength="6" placeholder="------" required>
+        <button type="submit">Verify & Download</button>
+    </form>
+
+    <div class="resend">
+        Didn’t receive OTP? <a href="#">Resend</a>
+    </div>
+
+    <div class="footer-text">
+        This OTP is valid for 5 minutes
+    </div>
+</div>
+
+</body>
+</html>
