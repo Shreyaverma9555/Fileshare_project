@@ -134,11 +134,7 @@ def logout():
     session.clear()
     return redirect(url_for("login_user"))
 
-# -------- UPLOAD --------
-
-import os
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# -------- UPLOAD -----
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
