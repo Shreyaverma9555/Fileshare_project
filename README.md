@@ -64,4 +64,4 @@ Advanced admin dashboard.
 
 ![image alt](https://github.com/Shreyaverma9555/Fileshare_project/blob/85d4705c1513004044988adde53402cf73ce6a58/select-best-file-sharing-sites.png)
 ![image alt](https://github.com/Shreyaverma9555/Fileshare_project/blob/4dc32cf3b1a99b3c672e823f83d10a6ef62ed8d5/WhatsApp%20Image%202026-03-27%20at%2012.26.17%20PM.jpeg)
-![image alt]
+![image alt](https://github.com/Shreyaverma9555/Fileshare_project/blob/f94f7aef80b8425f44c0eafe16ee6595e40d101b/WhatsApp%20Image%202026-03-27%20at%2012.13.22%20PM.jpeg)
