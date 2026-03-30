@@ -136,6 +136,10 @@ def logout():
 
 # -------- UPLOAD --------
 
+import os
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if "user" not in session:
