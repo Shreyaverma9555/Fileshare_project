@@ -186,6 +186,11 @@ def check_otp():
 
 # -------- UPLOAD --------
 
+import os
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
 
