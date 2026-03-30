@@ -13,6 +13,7 @@ from flask_mail import Mail, Message
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
+init_db()
 
 # ------------------ MAIL CONFIG ------------------
 
@@ -247,5 +248,4 @@ def download(random_id):
 # ------------------ RUN ------------------
 
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)
