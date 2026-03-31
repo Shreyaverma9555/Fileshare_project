@@ -43,20 +43,8 @@ def send_otp_email(receiver_email, otp):
 
 # ------------------ APP SETUP ------------------
 
-app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev_key")
-# ------------------ MAIL CONFIG ------------------
-
-app.config['MAIL_SERVER'] = 'sandbox.smtp.mailtrap.io'
-app.config['MAIL_PORT'] = 2525
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
-mail = Mail(app)
-
 def send_otp_email(receiver_email, otp):
-    print("🔥 FUNCTION CALLED")
+    print("FUNCTION CALLED")
     print("Sending to:", receiver_email)
     print("OTP:", otp)
 
@@ -73,8 +61,22 @@ def send_otp_email(receiver_email, otp):
         print("MAIL SENT SUCCESS")
         return True
     except Exception as e:
-        print("❌ MAIL ERROR:", e)
+        print(" MAIL ERROR:", e)
         return False
+    
+    
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev_key")
+# ------------------ MAIL CONFIG ------------------
+
+app.config['MAIL_SERVER'] = 'sandbox.smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
+mail = Mail(app)
+
 
 # ------------------ CONFIG ------------------
 
