@@ -1,7 +1,5 @@
 # Fileshare_project
 “This project is a secure file sharing system that allows users to upload, share, and download files with OTP-based authentication to ensure data security and controlled access.”
-# Fileshare_project
-“This project is a secure file sharing system that allows users to upload, share, and download files with OTP-based authentication to ensure data security and controlled access.”
 🟢 Introduction
 This web-based application, developed using Python and Flask, provides a secure platform for users to upload, store, and share files across a network. The system employs login authentication and OTP-based email verification to ensure that only authorized users can access files. It offers a safe and efficient solution for file sharing, catering to students, organizations, and individuals.
 🟢 Purpose of the Project
