@@ -45,7 +45,7 @@ mail = Mail(app)
 # ------------------ CONFIG ------------------
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+UPLOAD_FOLDER = "/tmp/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ------------------ UTIL ------------------
@@ -271,7 +271,6 @@ def download(random_id):
 
     return send_file(file[0], download_name=file[1], as_attachment=True)
 
-# ------------------ RUN ------------------
-
+# ------------------ RUN -----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
