@@ -1,4 +1,8 @@
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
+
 import string
 import sqlite3
 import random
@@ -17,10 +21,11 @@ app.secret_key = "super_secret_key"
 # Mail Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'shreyaverma9555@gmail.com'
-app.config['MAIL_PASSWORD'] = 'uwnkiemllqbmkbwu'
-app.config['MAIL_DEFAULT_SENDER'] = 'shreyaverma9555@gmail.com'
+app.config['MAIL_USE_TLS'] = True # MUST BE true
+app.config['MAIL_USE_SSL'] = False # MUST BE false
+app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
 
 mail = Mail(app)
 
@@ -193,6 +198,8 @@ def download_with_otp(random_id):
                 recipients=[email]
             )
             msg.body = f"Your OTP is {otp}. Valid for 5 minutes."
+            print("EMAIL:", app.config['MAIL_USERNAME'])
+            print("PASSWORD:", app.config['MAIL_PASSWORD'])  
             mail.send(msg)
 
             conn.close()

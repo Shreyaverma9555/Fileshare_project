@@ -1,28 +1,44 @@
+from dotenv import load_dotenv
 import os
+
+from flask_mail import Mail, Message
+
+load_dotenv()
+
 import string
 import sqlite3
 import random
 import time
-
 from flask import Flask, request, send_file, render_template, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Mail, Message
+
+import smtplib
+def send_otp_email(receiver_email, otp):
+    try:
+        msg = Message(
+            subject="OTP Verification",
+            recipients=[receiver_email],
+            body=f"Your OTP is: {otp}"
+        )
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print("MAIL ERROR:", e)
+        return False
 
 # ------------------ APP SETUP ------------------
 
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
-init_db()
-
+app.secret_key = os.environ.get("SECRET_KEY", "dev_key")
 # ------------------ MAIL CONFIG ------------------
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'shreyaverma9555@gmail.com'       # CHANGE
-app.config['MAIL_PASSWORD'] = 'ooedwfqheuiyfzfz'          # CHANGE
-app.config['MAIL_DEFAULT_SENDER'] = 'shreyaverma9555@gmail.com'
+app.config['MAIL_USERNAME'] = "shreyaverma9555@gmail.com"
+app.config['MAIL_PASSWORD'] = "zdlmrwafhqhlwfmp"  # no spaces
+app.config['MAIL_DEFAULT_SENDER'] = "shreyaverma9555@gmail.com"
 
 mail = Mail(app)
 
@@ -40,11 +56,12 @@ def generate_random_string(length=8):
 def generate_otp():
     return str(random.randint(100000, 999999))
 
-# ------------------ DATABASE ------------------
+# ------------------ DATABASE -----------------
 
 def init_db():
     conn = sqlite3.connect("files.db")
     cursor = conn.cursor()
+
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -75,6 +92,8 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+init_db()
 
 # ------------------ ROUTES ------------------
 
@@ -135,7 +154,7 @@ def verify_email():
         return redirect(url_for("login"))
     return render_template("verify_email.html")
 
-# -------- SEND OTP --------
+# ------------------ send_otp------------------
 
 @app.route("/send_otp", methods=["POST"])
 def send_otp():
@@ -143,12 +162,17 @@ def send_otp():
         return redirect(url_for("login"))
 
     email = session["email"]
+
     otp = generate_otp()
-    expiry = time.time() + 300
+    expiry = time.time() + 300   # 5 minutes
 
     conn = sqlite3.connect("files.db")
     cursor = conn.cursor()
 
+    # delete old OTP
+    cursor.execute("DELETE FROM otp_verification WHERE email=?", (email,))
+
+    # insert new OTP
     cursor.execute(
         "INSERT INTO otp_verification (email, otp, expiry) VALUES (?, ?, ?)",
         (email, otp, expiry)
@@ -156,9 +180,11 @@ def send_otp():
     conn.commit()
     conn.close()
 
-    msg = Message("Your OTP", recipients=[email])
-    msg.body = f"Your OTP is {otp}"
-    mail.send(msg)
+    try:
+        if not send_otp_email(email, otp):
+         return "Failed to send OTP email"
+    except Exception as e:
+        return f"Error sending email: {e}"
 
     return render_template("enter_otp.html")
 
@@ -173,9 +199,9 @@ def check_otp():
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT otp, expiry FROM otp_verification WHERE email=? ORDER BY id DESC LIMIT 1",
-        (email,)
-    )
+    "SELECT otp, expiry FROM otp_verification WHERE email=? ORDER BY id DESC LIMIT 1",
+    (email,)
+)
     data = cursor.fetchone()
     conn.close()
 
@@ -183,8 +209,8 @@ def check_otp():
         session["verified"] = True
         return redirect(url_for("upload"))
     else:
-        return "Invalid or expired OTP"
-
+        return render_template("enter_otp.html", error="Invalid or expired OTP")
+    
 # -------- UPLOAD --------
 
 import os
