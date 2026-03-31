@@ -2,7 +2,21 @@ from dotenv import load_dotenv
 import os
 
 from flask_mail import Mail, Message
+def send_otp_email(receiver_email, otp):
+    try:
+        msg = Message(
+            subject="OTP Verification",
+            recipients=[receiver_email],
+            body=f"Your OTP is: {otp}"
+        )
 
+        with mail.connect() as conn:
+            conn.send(msg)
+
+        return True
+    except Exception as e:
+        print("MAIL ERROR:", e)
+        return False
 load_dotenv()
 
 import string
@@ -153,7 +167,7 @@ def verify_email():
         return redirect(url_for("login"))
     return render_template("verify_email.html")
 
-# ------------------ send_otp------------------
+# ------------------ send_otp-----------
 
 @app.route("/send_otp", methods=["POST"])
 def send_otp():
@@ -161,17 +175,14 @@ def send_otp():
         return redirect(url_for("login"))
 
     email = session["email"]
-
     otp = generate_otp()
-    expiry = time.time() + 300   # 5 minutes
+
+    expiry = time.time() + 300
 
     conn = sqlite3.connect("files.db")
     cursor = conn.cursor()
 
-    # delete old OTP
     cursor.execute("DELETE FROM otp_verification WHERE email=?", (email,))
-
-    # insert new OTP
     cursor.execute(
         "INSERT INTO otp_verification (email, otp, expiry) VALUES (?, ?, ?)",
         (email, otp, expiry)
@@ -179,11 +190,7 @@ def send_otp():
     conn.commit()
     conn.close()
 
-    try:
-        if not send_otp_email(email, otp):
-         return "Failed to send OTP email"
-    except Exception as e:
-        return f"Error sending email: {e}"
+    send_otp_email(email, otp)
 
     return render_template("enter_otp.html")
 
@@ -207,8 +214,6 @@ def check_otp():
     if data and entered_otp == data[0] and time.time() < data[1]:
         session["verified"] = True
         return redirect(url_for("upload"))
-    else:
-        return render_template("enter_otp.html", error="Invalid or expired OTP")
     
 # -------- UPLOAD --------
 
