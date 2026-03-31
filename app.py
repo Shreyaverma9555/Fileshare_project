@@ -55,6 +55,27 @@ app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
 mail = Mail(app)
 
+def send_otp_email(receiver_email, otp):
+    print("🔥 FUNCTION CALLED")
+    print("Sending to:", receiver_email)
+    print("OTP:", otp)
+
+    try:
+        msg = Message(
+            subject="OTP Verification",
+            recipients=[receiver_email],
+            body=f"Your OTP is: {otp}"
+        )
+
+        with mail.connect() as conn:
+            conn.send(msg)
+
+        print("MAIL SENT SUCCESS")
+        return True
+    except Exception as e:
+        print("❌ MAIL ERROR:", e)
+        return False
+
 # ------------------ CONFIG ------------------
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
