@@ -110,9 +110,10 @@ def logout():
     return redirect(url_for("login"))
 @app.route("/verify_email")
 def verify_email():
-                if "user" not in session:
-                    return redirect (url_for("login"))
-                    return render_template("verify_email.html")
+    if "user" not in session:
+        return redirect(url_for("login"))
+    
+    return render_template("verify_email.html")
 
 # -------- REGISTER --------
 @app.route("/register", methods=["GET", "POST"])
