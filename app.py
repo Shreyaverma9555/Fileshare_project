@@ -66,8 +66,6 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
 app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_DEFAULT_SENDER")
-app.config['SESSION_COOKIE_SECURE'] = True
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 mail = Mail(app)
@@ -80,6 +78,7 @@ def send_otp_email(receiver_email, otp):
             body=f"Your OTP is: {otp}"
         )
         mail.send(msg)
+        print("MAIL SENT")
         return True
     except Exception as e:
         print("MAIL ERROR:", e)
