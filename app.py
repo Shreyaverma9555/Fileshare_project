@@ -61,7 +61,7 @@ init_db()
 
 # ------------------ MAIL CONFIG ------------------
 app.config['MAIL_SERVER'] = 'sandbox.smtp.mailtrap.io'
-app.config['MAIL_PORT'] = 587
+app.config['MAIL_PORT'] = 2525
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
@@ -69,6 +69,9 @@ app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
 mail = Mail(app)
+
+print("USER:", os.environ.get("MAIL_USERNAME"))
+print("PASS:", os.environ.get("MAIL_PASSWORD"))
 
 def send_otp_email(receiver_email, otp):
     try:
