@@ -143,30 +143,30 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        if user and check_password_hash(user[2], password):
-            # generate OTP
-            otp = generate_otp()
-            expiry = time.time() + 300
+        if not user and check_password_hash(user[2], password):
+           return render_template("login.html", error="Invalid credentials")
+         
+         # OTP generate
+        otp = str(random.randint(100000, 999999))
+        expiry = time.time() + 300
 
-            conn = get_db_connection()
-            cursor = conn.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-            cursor.execute("DELETE FROM otp_verification WHERE phone=%s", (phone,))
-            cursor.execute(
-                "INSERT INTO otp_verification (phone, otp, expiry) VALUES (%s, %s, %s)",
-                (phone, otp, expiry)
-            )
-            conn.commit()
-            conn.close()
+        cursor.execute("DELETE FROM otp_verification WHERE phone=%s", (phone,))
+        cursor.execute(
+            "INSERT INTO otp_verification (phone, otp, expiry) VALUES (%s, %s, %s)",
+            (phone, otp, expiry)
+        )
 
-            # send SMS
-            send_otp_sms(phone, otp)
+        conn.commit()
+        conn.close()
 
-            session["phone"] = phone
-            return redirect(url_for("verify_otp"))
+        # SEND SMS
+        send_otp_sms(phone, otp)
 
-        else:
-            return render_template("login.html", error="Invalid credentials")
+        session["phone"] = phone
+        return redirect(url_for("verify_otp"))
 
     return render_template("login.html")
 
