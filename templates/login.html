@@ -91,14 +91,12 @@
 <body>
 
 <div class="card">
-    <h2>Login</h2>
+    <h2>Login with phone</h2>
 
-    <form method="POST" action="/login">
-        <input type="email" name="email" placeholder="Enter Email" required>
-        <input type="password" name="password" placeholder="Enter Password" required>
-
-        <button type="submit">Login</button>
-    </form>
+    <form method="POST">
+    <input type="text" name="phone" placeholder="+91XXXXXXXXXX" required>
+    <button type="submit">Send OTP</button>
+</form>
 
     {% if error %}
         <p class="error">{{ error }}</p>

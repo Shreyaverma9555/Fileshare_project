@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Email Verification</title>
+    <title>Phone Verification</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Google Font -->
@@ -98,13 +98,12 @@
 
 <div class="container">
     <div class="icon">📩</div>
-    <h2>Email Verification</h2>
-    <p>Enter your email to receive a secure OTP for file download.</p>
+    <h2>phone Verification</h2>
+    <p>Enter your phone number to receive a secure OTP for file download.</p>
 
-    <form method="POST" action="/send_otp">
-        <input type="email" name="email" placeholder="Enter your email address" required>
-        <button type="submit">Send OTP</button>
-    </form>
+    <form method="POST" action="{{ url_for('send_otp') }}">
+    <button type="submit">Send OTP</button>
+</form>
 
     <div class="footer-text">
         Secure download verification system
