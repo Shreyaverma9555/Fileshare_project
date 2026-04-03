@@ -6,6 +6,7 @@ import time
 import psycopg2
 from flask import Flask, request, render_template, redirect, url_for, session, send_file
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from twilio.rest import Client
 
 # ------------------ LOAD ENV ------------------
@@ -14,6 +15,14 @@ load_dotenv()
 # ------------------ APP ------------------
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_key")
+
+# ------------------ CONFIG ------------------
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "pdf", "txt"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ------------------ DATABASE ------------------
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -25,13 +34,16 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # USERS TABLE
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
-            phone TEXT UNIQUE
+            phone TEXT UNIQUE,
+            password TEXT
         )
     """)
 
+    # OTP TABLE
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS otp_verification (
             id SERIAL PRIMARY KEY,
@@ -41,6 +53,7 @@ def init_db():
         )
     """)
 
+    # FILE TABLE
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS files (
             id SERIAL PRIMARY KEY,
@@ -55,7 +68,7 @@ def init_db():
 
 init_db()
 
-# ------------------ TWILIO CONFIG ------------------
+# ------------------ TWILIO ------------------
 def send_otp_sms(phone, otp):
     try:
         client = Client(
@@ -69,11 +82,11 @@ def send_otp_sms(phone, otp):
             to=phone
         )
 
-        print("✅ OTP SENT:", message.sid)
+        print("OTP SENT:", message.sid)
         return True
 
     except Exception as e:
-        print("❌ SMS ERROR:", e)
+        print("SMS ERROR:", e)
         return False
 
 # ------------------ CONFIG ------------------
@@ -92,46 +105,68 @@ def generate_random_string(length=8):
 def home():
     return redirect(url_for("login"))
 
-# -------- LOGIN (PHONE) --------
+# -------- REGISTER --------
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        phone = request.form.get("phone")
+        password = generate_password_hash(request.form.get("password"))
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(
+                "INSERT INTO users (phone, password) VALUES (%s, %s)",
+                (phone, password)
+            )
+            conn.commit()
+        except:
+            return render_template("register.html", error="Phone already exists")
+
+        conn.close()
+        return redirect(url_for("login"))
+
+    return render_template("register.html")
+
+# -------- LOGIN --------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         phone = request.form.get("phone")
+        password = request.form.get("password")
 
-        if not phone:
-            return render_template("login.html", error="Enter phone number")
-
-        # Save user if not exists
         conn = get_db_connection()
         cursor = conn.cursor()
+
         cursor.execute("SELECT * FROM users WHERE phone=%s", (phone,))
         user = cursor.fetchone()
+        conn.close()
 
-        if not user:
-            cursor.execute("INSERT INTO users (phone) VALUES (%s)", (phone,))
+        if user and check_password_hash(user[2], password):
+            # generate OTP
+            otp = generate_otp()
+            expiry = time.time() + 300
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("DELETE FROM otp_verification WHERE phone=%s", (phone,))
+            cursor.execute(
+                "INSERT INTO otp_verification (phone, otp, expiry) VALUES (%s, %s, %s)",
+                (phone, otp, expiry)
+            )
             conn.commit()
+            conn.close()
 
-        conn.close()
+            # send SMS
+            send_otp_sms(phone, otp)
 
-        # Generate OTP
-        otp = generate_otp()
-        expiry = time.time() + 300
+            session["phone"] = phone
+            return redirect(url_for("verify_otp"))
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM otp_verification WHERE phone=%s", (phone,))
-        cursor.execute(
-            "INSERT INTO otp_verification (phone, otp, expiry) VALUES (%s, %s, %s)",
-            (phone, otp, expiry)
-        )
-        conn.commit()
-        conn.close()
-
-        # Send SMS
-        send_otp_sms(phone, otp)
-
-        session["phone"] = phone
-        return redirect(url_for("verify_otp"))
+        else:
+            return render_template("login.html", error="Invalid credentials")
 
     return render_template("login.html")
 
@@ -144,6 +179,7 @@ def verify_otp():
 
         conn = get_db_connection()
         cursor = conn.cursor()
+
         cursor.execute(
             "SELECT otp, expiry FROM otp_verification WHERE phone=%s ORDER BY id DESC LIMIT 1",
             (phone,)
@@ -170,6 +206,8 @@ def upload():
 
         if not file or file.filename == "":
             return "No file selected"
+        if not allowed_file(file.filename):
+            return "File type not allowed"
 
         random_id = generate_random_string()
         filename = random_id + "_" + secure_filename(file.filename)
@@ -178,10 +216,12 @@ def upload():
 
         conn = get_db_connection()
         cursor = conn.cursor()
+
         cursor.execute(
             "INSERT INTO files (random_id, filename, filepath) VALUES (%s, %s, %s)",
             (random_id, filename, filepath)
         )
+
         conn.commit()
         conn.close()
 
@@ -216,4 +256,5 @@ def logout():
 
 # ------------------ RUN ------------------
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0.",
+            port=int(os.environ.get("PORT", 5000)))
