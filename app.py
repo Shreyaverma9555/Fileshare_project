@@ -14,6 +14,7 @@ load_dotenv()
 # ------------------ APP ------------------
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev_key")
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 # ------------------ TWILIO CONFIG ------------------
 client = Client(
@@ -91,7 +92,7 @@ init_db()
 UPLOAD_FOLDER = "/tmp/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "pdf", "txt"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "pdf", "txt",  "jpeg", "gif", "doc", "docx", "ppt", "pptx", "zip", "csv", "xls", "xlsx"}
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -137,6 +138,8 @@ def login():
     if request.method == "POST":
         phone = request.form.get("phone")
         password = request.form.get("password")
+        if not phone.startswith("+"):
+         phone = "+" + phone
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -158,6 +161,52 @@ def login():
         return redirect(url_for("verify_otp_page"))
 
     return render_template("login.html")
+
+# -------- FORGOT PASSWORD --------
+@app.route("/forgot", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        phone = request.form.get("phone")
+
+        if not phone.startswith("+"):
+            phone = "+" + phone
+
+        # Send OTP
+        if send_otp(phone):
+            session["reset_phone"] = phone
+            return redirect(url_for("reset_password"))
+        else:
+            return render_template("forgot.html", error="Failed to send OTP")
+
+    return render_template("forgot.html")
+
+# -------- RESET PASSWORD --------
+@app.route("/reset", methods=["GET", "POST"])
+def reset_password():
+    if request.method == "POST":
+        otp = request.form.get("otp")
+        new_password = request.form.get("password")
+        phone = session.get("reset_phone")
+
+        if verify_otp(phone, otp):
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            hashed_password = generate_password_hash(new_password)
+
+            cursor.execute(
+                "UPDATE users SET password=%s WHERE phone=%s",
+                (hashed_password, phone)
+            )
+
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for("login"))
+        else:
+            return render_template("reset.html", error="Invalid OTP")
+
+    return render_template("reset.html")
 
 # -------- OTP VERIFY --------
 @app.route("/verify", methods=["GET", "POST"])

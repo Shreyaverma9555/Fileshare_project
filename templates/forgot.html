@@ -64,20 +64,15 @@
 
 <div class="card">
     <h2>Forgot Password</h2>
-    <p>Enter your registered email</p>
 
-    <form method="POST" action="/forgot">
-        <input type="email" name="email" placeholder="Enter Email" required>
-        <button type="submit">Send Reset Link</button>
-    </form>
+    <form method="POST">
+        <input type="text" name="phone" placeholder="Enter Phone Number" required>
+        <button type="submit">Send OTP</button>
 
     {% if error %}
         <p class="error">{{ error }}</p>
     {% endif %}
-
-    {% if message %}
-        <p class="success">{{ message }}</p>
-    {% endif %}
+    </form>
 
     <a href="/login">
         <button type="button" class="back-btn">Back to Login</button>
