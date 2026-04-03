@@ -119,7 +119,7 @@
     <h2>Enter OTP</h2>
     <p>Enter the One Time Password sent to your phone</p>
 
-    <form method="POST" action="{{ url_for('verify_otp') }}">
+    <form method="POST" action="{{ url_for('verify_otp_page') }}">
     <input type="text" name="otp" placeholder="Enter OTP" required>
     <button type="submit">Verify</button>
 </form>
