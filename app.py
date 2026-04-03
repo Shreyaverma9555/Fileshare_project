@@ -53,7 +53,6 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
-
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -66,10 +65,18 @@ def init_db():
         )
     """)
 
-    try:
-        cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT;")
-    except:
-        pass
+    # FIX (safe ALTER)
+    cursor.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='phone'
+            ) THEN
+                ALTER TABLE users ADD COLUMN phone TEXT;
+            END IF;
+        END$$;
+    """)
 
     conn.commit()
     conn.close()
