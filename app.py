@@ -29,12 +29,10 @@ def send_otp(phone):
             to=phone,
             channel="sms"
         )
-        print("OTP SENT")
         return True
     except Exception as e:
-        print("ERROR:", e)
+        print("OTP ERROR:", e)
         return False
-
 
 def verify_otp(phone, otp):
     try:
@@ -47,16 +45,23 @@ def verify_otp(phone, otp):
         print("VERIFY ERROR:", e)
         return False
 
-
 # ------------------ DATABASE ------------------
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, sslmode='require')
+    if not DATABASE_URL:
+        raise Exception("DATABASE_URL not set")
+
+    if "localhost" in DATABASE_URL:
+        return psycopg2.connect(DATABASE_URL)
+    else:
+        return psycopg2.connect(DATABASE_URL, sslmode='require')
+
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # Users table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -65,21 +70,22 @@ def init_db():
         )
     """)
 
-    # FIX (safe ALTER)
+    # Files table
     cursor.execute("""
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM information_schema.columns 
-                WHERE table_name='users' AND column_name='phone'
-            ) THEN
-                ALTER TABLE users ADD COLUMN phone TEXT;
-            END IF;
-        END$$;
+        CREATE TABLE IF NOT EXISTS files (
+            id SERIAL PRIMARY KEY,
+            random_id TEXT UNIQUE,
+            filename TEXT,
+            filepath TEXT
+        )
     """)
 
     conn.commit()
+    cursor.close()
     conn.close()
+
+# Initialize DB once
+init_db()
 
 # ------------------ FILE CONFIG ------------------
 UPLOAD_FOLDER = "/tmp/uploads"
@@ -92,7 +98,6 @@ def allowed_file(filename):
 
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
 
 # ------------------ ROUTES ------------------
 
@@ -116,14 +121,15 @@ def register():
                 (phone, password)
             )
             conn.commit()
-        except:
+        except Exception:
+            conn.rollback()
             return render_template("register.html", error="Phone already exists")
+        finally:
+            conn.close()
 
-        conn.close()
         return redirect(url_for("login"))
 
     return render_template("register.html")
-
 
 # -------- LOGIN --------
 @app.route("/login", methods=["GET", "POST"])
@@ -145,7 +151,7 @@ def login():
         if not check_password_hash(user[2], password):
             return render_template("login.html", error="Wrong password")
 
-        # SEND OTP
+        # Send OTP
         send_otp(phone)
 
         session["phone"] = phone
@@ -153,8 +159,7 @@ def login():
 
     return render_template("login.html")
 
-
-# -------- OTP PAGE --------
+# -------- OTP VERIFY --------
 @app.route("/verify", methods=["GET", "POST"])
 def verify_otp_page():
     if request.method == "POST":
@@ -168,7 +173,6 @@ def verify_otp_page():
             return render_template("enter_otp.html", error="Invalid OTP")
 
     return render_template("enter_otp.html")
-
 
 # -------- UPLOAD --------
 @app.route("/upload", methods=["GET", "POST"])
@@ -188,6 +192,7 @@ def upload():
         random_id = generate_random_string()
         filename = random_id + "_" + secure_filename(file.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
+
         file.save(filepath)
 
         conn = get_db_connection()
@@ -205,7 +210,6 @@ def upload():
         return render_template("success.html", link=link)
 
     return render_template("index.html")
-
 
 # -------- DOWNLOAD --------
 @app.route("/<random_id>")
@@ -225,7 +229,6 @@ def download(random_id):
 
     return send_file(file[0], download_name=file[1], as_attachment=True)
 
-
 # -------- LOGOUT --------
 @app.route("/logout")
 def logout():
@@ -234,4 +237,5 @@ def logout():
 
 # ------------------ RUN ------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
