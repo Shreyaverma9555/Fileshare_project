@@ -69,7 +69,6 @@ app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 
-app.config['MAIL_MAX_EMAILS'] = None
 app.config['MAIL_SUPPRESS_SEND'] = False
 
 mail = Mail(app)
@@ -81,7 +80,6 @@ def send_otp_email(receiver_email, otp):
     try:
         msg = Message(
             subject="OTP Verification",
-            sender=app.config['MAIL_USERNAME'],
             recipients=[receiver_email],
             body=f"Your OTP is: {otp}"
         )
