@@ -66,19 +66,13 @@ def init_db():
         )
     """)
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS files (
-            id SERIAL PRIMARY KEY,
-            random_id TEXT,
-            filename TEXT,
-            filepath TEXT
-        )
-    """)
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN phone TEXT;")
+    except:
+        pass
 
     conn.commit()
     conn.close()
-
-init_db()
 
 # ------------------ FILE CONFIG ------------------
 UPLOAD_FOLDER = "/tmp/uploads"
