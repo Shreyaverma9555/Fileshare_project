@@ -174,7 +174,7 @@ def forgot_password():
         # Send OTP
         if send_otp(phone):
             session["reset_phone"] = phone
-            return redirect(url_for("reset_password.html"))
+            return redirect(url_for("reset_password"))
         else:
             return render_template("forgot.html", error="Failed to send OTP")
 
