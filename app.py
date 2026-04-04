@@ -174,7 +174,7 @@ def forgot_password():
         # Send OTP
         if send_otp(phone):
             session["reset_phone"] = phone
-            return redirect(url_for("reset_password"))
+            return redirect(url_for("reset_password.html"))
         else:
             return render_template("forgot.html", error="Failed to send OTP")
 
@@ -204,9 +204,9 @@ def reset_password():
 
             return redirect(url_for("login"))
         else:
-            return render_template("reset.html", error="Invalid OTP")
+            return render_template("reset_password.html", error="Invalid OTP")
 
-    return render_template("reset.html")
+    return render_template("reset_password.html")
 
 # -------- OTP VERIFY --------
 @app.route("/verify", methods=["GET", "POST"])
